@@ -19,7 +19,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <a href="#" className="font-serif text-xl lg:text-2xl tracking-wide">
-            Elara Vance
+            Alex Black
           </a>
 
           {/* Desktop Navigation */}

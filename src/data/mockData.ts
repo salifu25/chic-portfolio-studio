@@ -120,22 +120,22 @@ export const collections: Collection[] = [
 ];
 
 export const designerInfo = {
-  name: 'Elara Vance',
-  tagline: 'Where Art Meets Attire',
-  bio: `With over a decade of experience in haute couture, Elara Vance has established herself as a visionary in contemporary fashion. Her work bridges the gap between art and wearability, creating pieces that tell stories and evoke emotion.
+  name: 'Alex Black',
+  tagline: 'African Heritage, Global Elegance',
+  bio: `Born and raised in Accra, Ghana, Alex Black has emerged as one of Africa's most celebrated contemporary fashion designers. His work seamlessly blends traditional Ghanaian craftsmanship with modern silhouettes, creating pieces that honor heritage while pushing boundaries.
 
-Based in Paris and trained at Central Saint Martins, Elara's designs have graced international runways and red carpets. Her philosophy centers on sustainable luxury—each garment is crafted with intention, using ethically sourced materials and time-honored techniques.`,
+Trained at the Accra College of Art and mentored by master kente weavers, Alex's designs have graced runways from Lagos to Milan. His philosophy centers on celebrating African textiles and artisanship—each garment tells a story of cultural pride, crafted with locally sourced materials and time-honored techniques passed down through generations.`,
   achievements: [
-    'CFDA Emerging Designer Award, 2019',
-    'Vogue Italia Cover Feature, 2021',
-    'Sustainable Fashion Pioneer Award, 2023'
+    'Arise Fashion Week Designer of the Year, 2022',
+    'Vogue Africa Cover Feature, 2023',
+    'Ghana Fashion Icon Award, 2024'
   ],
-  studioLocation: 'Paris, France',
-  email: 'atelier@elaravance.com',
-  phone: '+33 1 42 60 00 00',
+  studioLocation: 'Accra, Ghana',
+  email: 'atelier@alexblack.com',
+  phone: '+233 30 277 0000',
   social: {
-    instagram: '@elaravance',
-    pinterest: 'elaravanceatelier'
+    instagram: '@alexblackgh',
+    pinterest: 'alexblackatelier'
   }
 };
 
