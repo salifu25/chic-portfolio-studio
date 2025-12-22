@@ -11,8 +11,8 @@ export function Footer() {
           <div>
             <h3 className="font-serif text-2xl mb-4">{designerInfo.name}</h3>
             <p className="text-primary-foreground/60 text-sm leading-relaxed">
-              Haute couture and bespoke fashion, handcrafted in Paris with
-              sustainable practices and timeless elegance.
+              Haute couture and bespoke fashion, handcrafted in Accra with
+              African heritage and timeless elegance.
             </p>
           </div>
 
