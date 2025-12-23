@@ -6,7 +6,65 @@
 
 @layer base {
   :root {
-    /* Deep, luxurious Ghanaian-inspired palette */
+    /* Light mode - Elegant warm cream palette */
+    --background: 40 25% 97%;
+    --foreground: 30 15% 12%;
+
+    --card: 40 20% 94%;
+    --card-foreground: 30 15% 12%;
+
+    --popover: 40 25% 97%;
+    --popover-foreground: 30 15% 12%;
+
+    /* Rich kente gold primary */
+    --primary: 42 85% 45%;
+    --primary-foreground: 40 25% 97%;
+
+    /* Warm terracotta secondary */
+    --secondary: 35 30% 88%;
+    --secondary-foreground: 30 15% 12%;
+
+    --muted: 35 20% 90%;
+    --muted-foreground: 30 10% 40%;
+
+    /* Vibrant accent gold */
+    --accent: 42 90% 50%;
+    --accent-foreground: 30 15% 12%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 35 20% 85%;
+    --input: 35 20% 90%;
+    --ring: 42 85% 45%;
+
+    --radius: 0rem;
+
+    /* Custom design tokens - Ghanaian inspired */
+    --kente-gold: 42 85% 45%;
+    --kente-orange: 25 85% 45%;
+    --terracotta: 18 50% 40%;
+    --forest: 150 25% 20%;
+    --midnight: 30 15% 12%;
+    --ivory: 40 25% 97%;
+    --adinkra: 42 75% 40%;
+
+    /* Typography */
+    --font-display: 'Bodoni Moda', 'Didot', serif;
+    --font-mono: 'Space Mono', 'Courier New', monospace;
+    --font-body: 'Cormorant Garamond', Georgia, serif;
+
+    /* Shadows */
+    --shadow-glow: 0 0 60px hsl(42 85% 45% / 0.1);
+    --shadow-deep: 0 25px 80px -20px hsl(30 15% 12% / 0.15);
+
+    /* Transitions */
+    --transition-smooth: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .dark {
+    /* Dark mode - Deep luxurious Ghanaian-inspired palette */
     --background: 30 8% 4%;
     --foreground: 45 30% 92%;
 
@@ -38,8 +96,6 @@
     --input: 30 10% 15%;
     --ring: 42 90% 55%;
 
-    --radius: 0rem;
-
     /* Custom design tokens - Ghanaian inspired */
     --kente-gold: 42 90% 55%;
     --kente-orange: 25 90% 50%;
@@ -49,24 +105,9 @@
     --ivory: 45 30% 92%;
     --adinkra: 42 80% 45%;
 
-    /* Typography */
-    --font-display: 'Bodoni Moda', 'Didot', serif;
-    --font-mono: 'Space Mono', 'Courier New', monospace;
-    --font-body: 'Cormorant Garamond', Georgia, serif;
-
-    /* Dramatic shadows */
+    /* Shadows */
     --shadow-glow: 0 0 60px hsl(42 90% 55% / 0.15);
     --shadow-deep: 0 25px 80px -20px hsl(0 0% 0% / 0.5);
-
-    /* Transitions */
-    --transition-smooth: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .dark {
-    /* Dark mode uses same palette - already dark */
-    --background: 30 8% 4%;
-    --foreground: 45 30% 92%;
   }
 }
 
