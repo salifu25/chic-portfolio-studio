@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { collections, categories, type Piece } from '@/data/mockData';
-import { Button } from '@/components/ui/button';
 import { PieceModal } from '@/components/PieceModal';
 
 export function Collections() {
@@ -25,23 +24,37 @@ export function Collections() {
       : allPieces.filter((piece) => piece.category === activeCategory);
 
   return (
-    <section id="collections" className="py-24 lg:py-32">
+    <section id="collections" className="section-padding-xl relative kente-pattern">
+      {/* Section marker */}
+      <div className="absolute left-6 lg:left-12 top-24 hidden lg:block">
+        <span className="font-mono text-xs tracking-dramatic uppercase text-muted-foreground text-vertical">
+          — 01 / Collections
+        </span>
+      </div>
+
       <div ref={ref} className="container mx-auto px-6 lg:px-12">
-        {/* Header */}
+        {/* Header with asymmetric layout */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-20"
         >
-          <p className="text-sm tracking-[0.2em] uppercase text-gold mb-4">
-            The Work
-          </p>
-          <h2 className="font-serif text-4xl lg:text-5xl mb-6">Collections</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Each collection tells a unique story, crafted with intention and
-            brought to life through meticulous artisanship.
-          </p>
+          <div className="grid lg:grid-cols-2 gap-8 items-end">
+            <div>
+              <p className="font-mono text-xs tracking-dramatic uppercase text-primary mb-6">
+                ▸ The Work
+              </p>
+              <h2 className="font-display text-5xl lg:text-7xl font-bold tracking-tight">
+                COLLECT
+                <span className="text-stroke">IONS</span>
+              </h2>
+            </div>
+            <p className="font-body text-lg text-muted-foreground lg:text-right max-w-md lg:ml-auto">
+              Each piece is a dialogue between heritage and innovation, 
+              crafted with intention in our Accra atelier.
+            </p>
+          </div>
         </motion.div>
 
         {/* Category Filter */}
@@ -49,16 +62,16 @@ export function Collections() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-4 mb-12"
+          className="flex flex-wrap gap-2 mb-16"
         >
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`text-sm tracking-[0.15em] uppercase px-4 py-2 transition-all duration-300 ${
+              className={`px-6 py-3 font-mono text-xs tracking-dramatic uppercase transition-all duration-500 ${
                 activeCategory === category.id
-                  ? 'text-foreground border-b-2 border-gold'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border border-border text-muted-foreground hover:border-primary hover:text-primary'
               }`}
             >
               {category.name}
@@ -66,43 +79,62 @@ export function Collections() {
           ))}
         </motion.div>
 
-        {/* Pieces Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Pieces Grid - Asymmetric Masonry Style */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           <AnimatePresence mode="popLayout">
             {filteredPieces.map((piece, index) => (
               <motion.article
                 key={piece.id}
                 layout
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group cursor-pointer"
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className={`group cursor-pointer ${
+                  index % 5 === 0 ? 'md:col-span-2 lg:col-span-2' : ''
+                }`}
                 onClick={() => setSelectedPiece(piece)}
               >
-                <div className="relative aspect-[3/4] bg-muted overflow-hidden mb-4">
+                <div className={`relative overflow-hidden bg-card ${
+                  index % 5 === 0 ? 'aspect-[16/9]' : 'aspect-[3/4]'
+                }`}>
                   <img
                     src={piece.image}
                     alt={piece.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 flex items-end p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20">
-                    <Button variant="editorial" size="sm" className="w-full bg-background/90 hover:bg-background">
-                      View Details
-                    </Button>
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  {/* Content overlay */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-6 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                    <p className="font-mono text-[10px] tracking-dramatic uppercase text-primary mb-2">
+                      {'collectionName' in piece && piece.collectionName}
+                    </p>
+                    <h3 className="font-display text-2xl font-bold mb-2">
+                      {piece.name}
+                    </h3>
+                    <p className="font-mono text-sm text-primary">
+                      {piece.price}
+                    </p>
                   </div>
+
+                  {/* Corner accent */}
+                  <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
 
-                <div className="space-y-1">
-                  <p className="text-xs tracking-[0.2em] uppercase text-gold">
-                    {'collectionName' in piece && piece.collectionName}
-                  </p>
-                  <h3 className="font-serif text-lg group-hover:text-gold transition-colors">
+                {/* Info below image */}
+                <div className="pt-4 pb-2 space-y-1 group-hover:opacity-0 transition-opacity duration-300">
+                  <div className="flex items-center justify-between">
+                    <p className="font-mono text-[10px] tracking-dramatic uppercase text-muted-foreground">
+                      {'collectionName' in piece && piece.collectionName}
+                    </p>
+                    <span className="w-8 h-px bg-border group-hover:bg-primary group-hover:w-12 transition-all duration-500" />
+                  </div>
+                  <h3 className="font-display text-lg tracking-tight">
                     {piece.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-mono text-sm text-primary">
                     {piece.price}
                   </p>
                 </div>

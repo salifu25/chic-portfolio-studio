@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { MapPin, Mail, Phone } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { designerInfo } from '@/data/mockData';
@@ -18,25 +17,25 @@ export function Contact() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // TODO: Integrate with backend API
-    // Placeholder for contact form logic
     await new Promise((resolve) => setTimeout(resolve, 1500));
-
     toast({
       title: 'Message Sent',
       description: 'Thank you for reaching out. We will respond shortly.',
     });
-
     setIsSubmitting(false);
     (e.target as HTMLFormElement).reset();
   };
 
   return (
-    <section id="contact" className="py-24 lg:py-32">
+    <section id="contact" className="section-padding-xl relative">
+      <div className="absolute left-6 lg:left-12 top-24 hidden lg:block">
+        <span className="font-mono text-xs tracking-dramatic uppercase text-muted-foreground text-vertical">
+          — 04 / Contact
+        </span>
+      </div>
+
       <div ref={ref} className="container mx-auto px-6 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
-          {/* Contact Info */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -44,160 +43,62 @@ export function Contact() {
             className="space-y-8"
           >
             <div>
-              <p className="text-sm tracking-editorial uppercase text-gold mb-4">
-                Get in Touch
-              </p>
-              <h2 className="font-serif text-4xl lg:text-5xl mb-6">Contact</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Whether you're interested in commissioning a piece, purchasing
-                from a collection, or simply have a question, we'd love to hear
-                from you.
+              <p className="font-mono text-xs tracking-dramatic uppercase text-primary mb-6">▸ Get in Touch</p>
+              <h2 className="font-display text-4xl lg:text-6xl font-bold tracking-tight mb-4">CONTACT</h2>
+              <p className="font-body text-lg text-muted-foreground leading-relaxed">
+                Whether you're commissioning a piece or have a question, we'd love to hear from you.
               </p>
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 flex items-center justify-center bg-secondary rounded-full">
-                  <MapPin size={18} className="text-gold" />
+              {[
+                { icon: MapPin, label: 'Atelier', value: designerInfo.studioLocation },
+                { icon: Mail, label: 'Email', value: designerInfo.email, href: `mailto:${designerInfo.email}` },
+                { icon: Phone, label: 'Phone', value: designerInfo.phone, href: `tel:${designerInfo.phone}` },
+              ].map((item) => (
+                <div key={item.label} className="flex items-start gap-4 group">
+                  <div className="w-12 h-12 flex items-center justify-center border border-border group-hover:border-primary group-hover:bg-primary/10 transition-all duration-500">
+                    <item.icon size={18} className="text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-mono text-xs tracking-dramatic uppercase text-muted-foreground mb-1">{item.label}</p>
+                    {item.href ? (
+                      <a href={item.href} className="font-body text-foreground hover:text-primary transition-colors">{item.value}</a>
+                    ) : (
+                      <p className="font-body text-foreground">{item.value}</p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium mb-1">Atelier</p>
-                  <p className="text-muted-foreground text-sm">
-                    {designerInfo.studioLocation}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 flex items-center justify-center bg-secondary rounded-full">
-                  <Mail size={18} className="text-gold" />
-                </div>
-                <div>
-                  <p className="font-medium mb-1">Email</p>
-                  <a
-                    href={`mailto:${designerInfo.email}`}
-                    className="text-muted-foreground text-sm hover:text-gold transition-colors"
-                  >
-                    {designerInfo.email}
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 flex items-center justify-center bg-secondary rounded-full">
-                  <Phone size={18} className="text-gold" />
-                </div>
-                <div>
-                  <p className="font-medium mb-1">Phone</p>
-                  <a
-                    href={`tel:${designerInfo.phone}`}
-                    className="text-muted-foreground text-sm hover:text-gold transition-colors"
-                  >
-                    {designerInfo.phone}
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-8 border-t border-border">
-              <p className="text-sm tracking-editorial uppercase text-muted-foreground mb-4">
-                Follow Us
-              </p>
-              <div className="flex gap-4">
-                <a
-                  href="#"
-                  className="text-sm hover:text-gold transition-colors"
-                  aria-label="Instagram"
-                >
-                  Instagram
-                </a>
-                <span className="text-muted-foreground">•</span>
-                <a
-                  href="#"
-                  className="text-sm hover:text-gold transition-colors"
-                  aria-label="Pinterest"
-                >
-                  Pinterest
-                </a>
-              </div>
+              ))}
             </div>
           </motion.div>
 
-          {/* Contact Form */}
           <motion.form
             initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
             onSubmit={handleSubmit}
-            className="space-y-6"
+            className="space-y-6 border border-border p-8 lg:p-12"
           >
             <div className="space-y-2">
-              <label htmlFor="contactName" className="text-sm tracking-wide">
-                Name
-              </label>
-              <Input
-                id="contactName"
-                name="name"
-                required
-                className="bg-background border-border focus:border-gold focus:ring-gold"
-              />
+              <label htmlFor="contactName" className="font-mono text-xs tracking-dramatic uppercase">Name</label>
+              <Input id="contactName" name="name" required className="bg-transparent border-border focus:border-primary" />
             </div>
-
             <div className="space-y-2">
-              <label htmlFor="contactEmail" className="text-sm tracking-wide">
-                Email
-              </label>
-              <Input
-                id="contactEmail"
-                name="email"
-                type="email"
-                required
-                className="bg-background border-border focus:border-gold focus:ring-gold"
-              />
+              <label htmlFor="contactEmail" className="font-mono text-xs tracking-dramatic uppercase">Email</label>
+              <Input id="contactEmail" name="email" type="email" required className="bg-transparent border-border focus:border-primary" />
             </div>
-
             <div className="space-y-2">
-              <label htmlFor="subject" className="text-sm tracking-wide">
-                Subject
-              </label>
-              <select
-                id="subject"
-                name="subject"
-                required
-                className="w-full h-10 px-3 bg-background border border-border rounded-sm text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
-              >
-                <option value="">Select a topic</option>
-                <option value="purchase">Purchase Inquiry</option>
-                <option value="commission">Commission Request</option>
-                <option value="press">Press Inquiry</option>
-                <option value="collaboration">Collaboration</option>
-                <option value="other">Other</option>
-              </select>
+              <label htmlFor="contactMessage" className="font-mono text-xs tracking-dramatic uppercase">Message</label>
+              <Textarea id="contactMessage" name="message" rows={6} required className="bg-transparent border-border focus:border-primary resize-none" />
             </div>
-
-            <div className="space-y-2">
-              <label htmlFor="contactMessage" className="text-sm tracking-wide">
-                Message
-              </label>
-              <Textarea
-                id="contactMessage"
-                name="message"
-                rows={6}
-                required
-                placeholder="How can we assist you?"
-                className="bg-background border-border focus:border-gold focus:ring-gold resize-none"
-              />
-            </div>
-
-            <Button
+            <button
               type="submit"
-              variant="editorial"
-              size="lg"
-              className="w-full"
               disabled={isSubmitting}
+              className="w-full px-8 py-4 font-mono text-sm uppercase tracking-dramatic border-2 border-primary bg-primary text-primary-foreground hover:bg-transparent hover:text-primary transition-all duration-500 disabled:opacity-50"
             >
               {isSubmitting ? 'Sending...' : 'Send Message'}
-            </Button>
+            </button>
           </motion.form>
         </div>
       </div>
