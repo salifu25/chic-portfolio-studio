@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;0,6..96,900;1,6..96,400;1,6..96,500&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,88 +6,67 @@
 
 @layer base {
   :root {
-    /* Warm, luxurious palette */
-    --background: 40 20% 98%;
-    --foreground: 0 0% 8%;
+    /* Deep, luxurious Ghanaian-inspired palette */
+    --background: 30 8% 4%;
+    --foreground: 45 30% 92%;
 
-    --card: 40 15% 96%;
-    --card-foreground: 0 0% 8%;
+    --card: 30 8% 8%;
+    --card-foreground: 45 30% 92%;
 
-    --popover: 40 20% 98%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 30 8% 6%;
+    --popover-foreground: 45 30% 92%;
 
-    /* Deep charcoal primary */
-    --primary: 0 0% 12%;
-    --primary-foreground: 40 20% 98%;
+    /* Rich kente gold primary */
+    --primary: 42 90% 55%;
+    --primary-foreground: 30 8% 4%;
 
-    /* Warm cream secondary */
-    --secondary: 40 25% 94%;
-    --secondary-foreground: 0 0% 12%;
+    /* Warm terracotta secondary */
+    --secondary: 18 60% 25%;
+    --secondary-foreground: 45 30% 92%;
 
-    --muted: 40 15% 92%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 30 10% 15%;
+    --muted-foreground: 45 15% 55%;
 
-    /* Warm gold accent */
-    --accent: 38 70% 50%;
-    --accent-foreground: 0 0% 100%;
+    /* Vibrant accent gold */
+    --accent: 45 100% 50%;
+    --accent-foreground: 30 8% 4%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
-    --ring: 38 70% 50%;
+    --border: 30 10% 18%;
+    --input: 30 10% 15%;
+    --ring: 42 90% 55%;
 
-    --radius: 0.25rem;
+    --radius: 0rem;
 
-    /* Custom design tokens */
-    --gold: 38 70% 50%;
-    --gold-light: 38 60% 70%;
-    --cream: 40 25% 94%;
-    --charcoal: 0 0% 12%;
-    --charcoal-light: 0 0% 25%;
+    /* Custom design tokens - Ghanaian inspired */
+    --kente-gold: 42 90% 55%;
+    --kente-orange: 25 90% 50%;
+    --terracotta: 18 60% 35%;
+    --forest: 150 30% 15%;
+    --midnight: 30 8% 4%;
+    --ivory: 45 30% 92%;
+    --adinkra: 42 80% 45%;
 
     /* Typography */
-    --font-serif: 'Playfair Display', Georgia, serif;
-    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'Bodoni Moda', 'Didot', serif;
+    --font-mono: 'Space Mono', 'Courier New', monospace;
+    --font-body: 'Cormorant Garamond', Georgia, serif;
 
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.08);
-    --shadow-elevated: 0 12px 40px -8px hsl(0 0% 0% / 0.12);
+    /* Dramatic shadows */
+    --shadow-glow: 0 0 60px hsl(42 90% 55% / 0.15);
+    --shadow-deep: 0 25px 80px -20px hsl(0 0% 0% / 0.5);
 
     /* Transitions */
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .dark {
-    --background: 0 0% 6%;
-    --foreground: 40 15% 92%;
-
-    --card: 0 0% 10%;
-    --card-foreground: 40 15% 92%;
-
-    --popover: 0 0% 8%;
-    --popover-foreground: 40 15% 92%;
-
-    --primary: 40 20% 96%;
-    --primary-foreground: 0 0% 8%;
-
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 40 15% 92%;
-
-    --muted: 0 0% 18%;
-    --muted-foreground: 40 10% 60%;
-
-    --accent: 38 70% 55%;
-    --accent-foreground: 0 0% 8%;
-
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 38 70% 55%;
+    /* Dark mode uses same palette - already dark */
+    --background: 30 8% 4%;
+    --foreground: 45 30% 92%;
   }
 }
 
@@ -102,64 +81,213 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--font-sans);
+    font-family: var(--font-body);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+    color: hsl(var(--foreground));
   }
 }
 
 @layer components {
   .text-gradient-gold {
-    @apply bg-gradient-to-r from-[hsl(var(--gold))] via-[hsl(var(--gold-light))] to-[hsl(var(--gold))] bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[hsl(var(--kente-gold))] via-[hsl(var(--kente-orange))] to-[hsl(var(--kente-gold))] bg-clip-text text-transparent;
   }
 
-  .border-gradient-gold {
+  .border-kente {
     border-image: linear-gradient(
-      90deg,
-      hsl(var(--gold)),
-      hsl(var(--gold-light)),
-      hsl(var(--gold))
+      135deg,
+      hsl(var(--kente-gold)),
+      hsl(var(--kente-orange)),
+      hsl(var(--terracotta)),
+      hsl(var(--kente-gold))
     ) 1;
   }
 
   .hover-lift {
-    @apply transition-all duration-300;
+    @apply transition-all duration-500;
   }
 
   .hover-lift:hover {
-    @apply -translate-y-1;
-    box-shadow: var(--shadow-elevated);
+    @apply -translate-y-2;
+    box-shadow: var(--shadow-glow);
   }
 
+  /* Unique diagonal cut pattern */
+  .diagonal-cut {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 80px), 0 100%);
+  }
+
+  .diagonal-cut-reverse {
+    clip-path: polygon(0 0, 100% 80px, 100% 100%, 0 100%);
+  }
+
+  /* Kente-inspired pattern overlay */
+  .kente-pattern {
+    background-image: 
+      repeating-linear-gradient(
+        45deg,
+        hsl(var(--kente-gold) / 0.03) 0px,
+        hsl(var(--kente-gold) / 0.03) 2px,
+        transparent 2px,
+        transparent 20px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        hsl(var(--kente-orange) / 0.02) 0px,
+        hsl(var(--kente-orange) / 0.02) 2px,
+        transparent 2px,
+        transparent 20px
+      );
+  }
+
+  /* Dramatic image reveal */
   .image-reveal {
-    @apply overflow-hidden;
+    @apply overflow-hidden relative;
+  }
+
+  .image-reveal::after {
+    content: '';
+    @apply absolute inset-0 bg-primary;
+    transform: translateX(-100%);
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .image-reveal:hover::after {
+    transform: translateX(100%);
   }
 
   .image-reveal img {
-    @apply transition-transform duration-700 ease-out;
+    @apply transition-all duration-700 ease-out;
   }
 
   .image-reveal:hover img {
-    @apply scale-105;
+    @apply scale-110;
+    filter: contrast(1.1);
+  }
+
+  /* Glowing border effect */
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--kente-gold)),
+      hsl(var(--kente-orange)),
+      hsl(var(--terracotta)),
+      hsl(var(--kente-gold))
+    );
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+
+  /* Split text animation container */
+  .split-text {
+    @apply overflow-hidden;
+  }
+
+  .split-text span {
+    @apply inline-block;
+    transform: translateY(100%);
+    animation: splitReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @keyframes splitReveal {
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Marquee effect */
+  .marquee {
+    display: flex;
+    overflow: hidden;
+  }
+
+  .marquee-content {
+    display: flex;
+    animation: marquee 20s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Noise texture overlay */
+  .noise-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    mix-blend-mode: overlay;
   }
 }
 
 @layer utilities {
-  .font-serif {
-    font-family: var(--font-serif);
+  .font-display {
+    font-family: var(--font-display);
   }
 
-  .font-sans {
-    font-family: var(--font-sans);
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  .font-body {
+    font-family: var(--font-body);
+  }
+
+  .tracking-dramatic {
+    letter-spacing: 0.25em;
   }
 
   .tracking-editorial {
     letter-spacing: 0.15em;
   }
 
-  .tracking-wide-custom {
-    letter-spacing: 0.08em;
+  .text-stroke {
+    -webkit-text-stroke: 1px hsl(var(--foreground));
+    color: transparent;
+  }
+
+  .text-stroke-gold {
+    -webkit-text-stroke: 1px hsl(var(--kente-gold));
+    color: transparent;
+  }
+
+  /* Vertical text */
+  .text-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+
+  /* Asymmetric spacing */
+  .section-padding {
+    @apply py-24 lg:py-40;
+  }
+
+  .section-padding-xl {
+    @apply py-32 lg:py-56;
   }
 }

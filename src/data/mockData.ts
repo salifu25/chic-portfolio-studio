@@ -37,7 +37,7 @@ export const collections: Collection[] = [
         name: 'Petal Gown',
         description: 'Hand-draped silk organza gown with delicate floral embroidery',
         image: pieceGown,
-        price: '$4,800',
+        price: 'GH₵ 58,000',
         available: true,
         category: 'couture'
       },
@@ -46,7 +46,7 @@ export const collections: Collection[] = [
         name: 'Garden Blazer',
         description: 'Tailored linen blazer with botanical print lining',
         image: pieceBlazer,
-        price: '$1,200',
+        price: 'GH₵ 14,500',
         available: true,
         category: 'ready-to-wear'
       },
@@ -55,7 +55,7 @@ export const collections: Collection[] = [
         name: 'Bloom Clutch',
         description: 'Sculptural leather clutch with floral brass hardware',
         image: pieceClutch,
-        price: '$680',
+        price: 'GH₵ 8,200',
         available: false,
         category: 'accessories'
       }
@@ -74,7 +74,7 @@ export const collections: Collection[] = [
         name: 'Midnight Cape',
         description: 'Wool cape with silk velvet lining and hand-finished edges',
         image: pieceCape,
-        price: '$3,200',
+        price: 'GH₵ 38,500',
         available: true,
         category: 'couture'
       },
@@ -83,7 +83,7 @@ export const collections: Collection[] = [
         name: 'Shadow Trousers',
         description: 'High-waisted wide-leg trousers in Japanese wool',
         image: pieceBlazer,
-        price: '$890',
+        price: 'GH₵ 10,700',
         available: true,
         category: 'ready-to-wear'
       }
@@ -102,7 +102,7 @@ export const collections: Collection[] = [
         name: 'Chrysalis Dress',
         description: 'Layered silk dress with transformative draping',
         image: pieceGown,
-        price: '$2,800',
+        price: 'GH₵ 33,800',
         available: true,
         category: 'ready-to-wear'
       },
@@ -111,7 +111,7 @@ export const collections: Collection[] = [
         name: 'Evolution Earrings',
         description: 'Sterling silver sculptural earrings',
         image: pieceClutch,
-        price: '$420',
+        price: 'GH₵ 5,100',
         available: true,
         category: 'accessories'
       }
