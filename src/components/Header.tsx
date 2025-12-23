@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 const navItems = [
   { name: 'Collections', href: '#collections' },
@@ -56,13 +57,14 @@ export function Header() {
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* Right side: Theme toggle + CTA */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="hidden md:block"
+            className="hidden md:flex items-center gap-4"
           >
+            <ThemeToggle />
             <a
               href="#book"
               className="inline-flex items-center justify-center px-6 py-3 font-mono text-xs uppercase tracking-dramatic border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500"
@@ -71,14 +73,17 @@ export function Header() {
             </a>
           </motion.div>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-foreground"
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Mobile: Theme toggle + Menu Toggle */}
+          <div className="flex items-center gap-3 md:hidden">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 text-foreground"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </nav>
 
