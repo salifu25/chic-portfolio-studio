@@ -69,9 +69,11 @@ export interface Collection {
   description: string;
   season: string;
   year: number;
+  coverImage?: string;
   isVisible: boolean;
   createdAt: string;
   updatedAt: string;
+  pieces?: CollectionPiece[];
 }
 
 export interface CollectionPiece {
@@ -79,18 +81,61 @@ export interface CollectionPiece {
   collectionId: string;
   name: string;
   description: string;
-  price: number;
-  currency: string;
+  image: string;
+  price?: string;
   showPrice: boolean;
-  isAvailable: boolean;
+  available: boolean;
   isVisible: boolean;
-  images: string[];
-  materials: string[];
+  category: 'ready-to-wear' | 'couture' | 'accessories';
   createdAt: string;
   updatedAt: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+}
+
+// Public collections data (for homepage)
+export interface PublicCollection {
+  id: string;
+  name: string;
+  season: string;
+  year: number;
+  description: string;
+  coverImage: string;
+  pieces: PublicPiece[];
+}
+
+export interface PublicPiece {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  price?: string;
+  available: boolean;
+  category: 'ready-to-wear' | 'couture' | 'accessories';
+}
+
 export const collectionsApi = {
+  // Public endpoint - returns visible collections with visible pieces
+  getPublic: async (): Promise<PublicCollection[]> => {
+    console.log('API Call: GET /public/collections');
+    // return apiRequest<PublicCollection[]>('/public/collections');
+    return []; // Will fallback to mock data in component
+  },
+
+  getCategories: async (): Promise<Category[]> => {
+    console.log('API Call: GET /categories');
+    // return apiRequest<Category[]>('/categories');
+    return [
+      { id: 'all', name: 'All' },
+      { id: 'couture', name: 'Couture' },
+      { id: 'ready-to-wear', name: 'Ready-to-Wear' },
+      { id: 'accessories', name: 'Accessories' },
+    ];
+  },
+
   getAll: async () => {
     // TODO: Connect to Spring Boot /collections endpoint
     console.log('API Call: GET /collections');

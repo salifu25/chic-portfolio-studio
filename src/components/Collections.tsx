@@ -1,15 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { collections, categories, type Piece } from '@/data/mockData';
+import { collections as mockCollections, categories as mockCategories, type Piece } from '@/data/mockData';
 import { PieceModal } from '@/components/PieceModal';
+import { collectionsApi, type PublicCollection, type Category } from '@/services/api';
 
 export function Collections() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
+  const [collections, setCollections] = useState<PublicCollection[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [collectionsData, categoriesData] = await Promise.all([
+          collectionsApi.getPublic(),
+          collectionsApi.getCategories(),
+        ]);
+        
+        // Use API data if available, otherwise fallback to mock
+        if (collectionsData.length > 0) {
+          setCollections(collectionsData);
+        } else {
+          setCollections(mockCollections);
+        }
+        setCategories(categoriesData);
+      } catch (error) {
+        // Fallback to mock data if API is not available
+        console.log('Using mock data - backend not available');
+        setCollections(mockCollections);
+        setCategories(mockCategories);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const allPieces = collections.flatMap((collection) =>
     collection.pieces.map((piece) => ({
