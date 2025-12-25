@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Plus, 
@@ -11,7 +11,8 @@ import {
   Package,
   DollarSign,
   Image as ImageIcon,
-  Settings
+  Settings,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -30,28 +31,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { collectionsApi, piecesApi, uploadApi, Collection, CollectionPiece } from '@/services/api';
 
-interface Piece {
-  id: string;
-  name: string;
-  price: number;
-  showPrice: boolean;
-  isAvailable: boolean;
-  isVisible: boolean;
-  image: string;
-}
-
-interface Collection {
-  id: string;
-  name: string;
-  description: string;
-  season: string;
-  year: number;
-  isVisible: boolean;
-  pieces: Piece[];
-}
-
-// Mock data for development - will be replaced with API calls
+// Mock data for fallback when API is unavailable
 const mockCollections: Collection[] = [
   {
     id: '1',
@@ -60,26 +42,9 @@ const mockCollections: Collection[] = [
     season: 'Fall/Winter',
     year: 2024,
     isVisible: true,
-    pieces: [
-      {
-        id: 'p1',
-        name: 'Golden Draped Gown',
-        price: 8500,
-        showPrice: true,
-        isAvailable: true,
-        isVisible: true,
-        image: '/placeholder.svg',
-      },
-      {
-        id: 'p2',
-        name: 'Kente Fusion Blazer',
-        price: 4200,
-        showPrice: true,
-        isAvailable: false,
-        isVisible: true,
-        image: '/placeholder.svg',
-      },
-    ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    pieces: [],
   },
   {
     id: '2',
@@ -88,17 +53,9 @@ const mockCollections: Collection[] = [
     season: 'Spring/Summer',
     year: 2025,
     isVisible: false,
-    pieces: [
-      {
-        id: 'p3',
-        name: 'Wave Silk Dress',
-        price: 6800,
-        showPrice: false,
-        isAvailable: true,
-        isVisible: true,
-        image: '/placeholder.svg',
-      },
-    ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    pieces: [],
   },
 ];
 
@@ -106,156 +63,259 @@ export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [collections, setCollections] = useState<Collection[]>(mockCollections);
+  
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [pieces, setPieces] = useState<CollectionPiece[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingPieces, setLoadingPieces] = useState(false);
+  const [saving, setSaving] = useState(false);
   
   // Modal states
   const [isAddingCollection, setIsAddingCollection] = useState(false);
   const [isAddingPiece, setIsAddingPiece] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
-  const [editingPiece, setEditingPiece] = useState<Piece | null>(null);
+  const [editingPiece, setEditingPiece] = useState<CollectionPiece | null>(null);
   
   // Form states
   const [newCollection, setNewCollection] = useState({ name: '', description: '', season: '', year: new Date().getFullYear() });
-  const [newPiece, setNewPiece] = useState({ name: '', price: 0 });
+  const [newPiece, setNewPiece] = useState({ name: '', price: 0, description: '', category: 'ready-to-wear' as const });
+
+  // Fetch collections on mount
+  useEffect(() => {
+    fetchCollections();
+  }, []);
+
+  // Fetch pieces when collection is selected
+  useEffect(() => {
+    if (selectedCollection) {
+      fetchPieces(selectedCollection);
+    } else {
+      setPieces([]);
+    }
+  }, [selectedCollection]);
+
+  const fetchCollections = async () => {
+    setLoading(true);
+    try {
+      const data = await collectionsApi.getAll();
+      setCollections(data.length > 0 ? data : mockCollections);
+    } catch (error) {
+      console.error('Failed to fetch collections:', error);
+      setCollections(mockCollections);
+      toast({ title: 'Using offline data', description: 'Could not connect to server.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPieces = async (collectionId: string) => {
+    setLoadingPieces(true);
+    try {
+      const data = await piecesApi.getByCollection(collectionId);
+      setPieces(data);
+    } catch (error) {
+      console.error('Failed to fetch pieces:', error);
+      setPieces([]);
+    } finally {
+      setLoadingPieces(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
 
-  const toggleCollectionVisibility = (collectionId: string) => {
-    setCollections(prev =>
-      prev.map(c =>
-        c.id === collectionId ? { ...c, isVisible: !c.isVisible } : c
-      )
-    );
-    toast({
-      title: 'Collection updated',
-      description: 'Visibility setting has been changed.',
-    });
+  const toggleCollectionVisibility = async (collectionId: string) => {
+    const collection = collections.find(c => c.id === collectionId);
+    if (!collection) return;
+    
+    try {
+      await collectionsApi.toggleVisibility(collectionId, !collection.isVisible);
+      setCollections(prev =>
+        prev.map(c =>
+          c.id === collectionId ? { ...c, isVisible: !c.isVisible } : c
+        )
+      );
+      toast({ title: 'Collection updated', description: 'Visibility setting has been changed.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update visibility.', variant: 'destructive' });
+    }
   };
 
-  const togglePieceVisibility = (collectionId: string, pieceId: string) => {
-    setCollections(prev =>
-      prev.map(c =>
-        c.id === collectionId
-          ? {
-              ...c,
-              pieces: c.pieces.map(p =>
-                p.id === pieceId ? { ...p, isVisible: !p.isVisible } : p
-              ),
-            }
-          : c
-      )
-    );
+  const togglePieceVisibility = async (pieceId: string) => {
+    const piece = pieces.find(p => p.id === pieceId);
+    if (!piece) return;
+    
+    try {
+      await piecesApi.update(pieceId, { isVisible: !piece.isVisible });
+      setPieces(prev =>
+        prev.map(p =>
+          p.id === pieceId ? { ...p, isVisible: !p.isVisible } : p
+        )
+      );
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update visibility.', variant: 'destructive' });
+    }
   };
 
-  const togglePriceVisibility = (collectionId: string, pieceId: string) => {
-    setCollections(prev =>
-      prev.map(c =>
-        c.id === collectionId
-          ? {
-              ...c,
-              pieces: c.pieces.map(p =>
-                p.id === pieceId ? { ...p, showPrice: !p.showPrice } : p
-              ),
-            }
-          : c
-      )
-    );
+  const togglePriceVisibility = async (pieceId: string) => {
+    const piece = pieces.find(p => p.id === pieceId);
+    if (!piece) return;
+    
+    try {
+      await piecesApi.updatePricing(pieceId, { price: parseFloat(piece.price || '0'), showPrice: !piece.showPrice });
+      setPieces(prev =>
+        prev.map(p =>
+          p.id === pieceId ? { ...p, showPrice: !p.showPrice } : p
+        )
+      );
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update price visibility.', variant: 'destructive' });
+    }
   };
 
-  const toggleAvailability = (collectionId: string, pieceId: string) => {
-    setCollections(prev =>
-      prev.map(c =>
-        c.id === collectionId
-          ? {
-              ...c,
-              pieces: c.pieces.map(p =>
-                p.id === pieceId ? { ...p, isAvailable: !p.isAvailable } : p
-              ),
-            }
-          : c
-      )
-    );
+  const toggleAvailability = async (pieceId: string) => {
+    const piece = pieces.find(p => p.id === pieceId);
+    if (!piece) return;
+    
+    try {
+      await piecesApi.updateAvailability(pieceId, !piece.available);
+      setPieces(prev =>
+        prev.map(p =>
+          p.id === pieceId ? { ...p, available: !p.available } : p
+        )
+      );
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update availability.', variant: 'destructive' });
+    }
   };
 
-  const handleAddCollection = () => {
-    const collection: Collection = {
-      id: Date.now().toString(),
-      ...newCollection,
-      isVisible: false,
-      pieces: [],
-    };
-    setCollections(prev => [...prev, collection]);
-    setNewCollection({ name: '', description: '', season: '', year: new Date().getFullYear() });
-    setIsAddingCollection(false);
-    toast({ title: 'Collection created', description: `"${collection.name}" has been added.` });
+  const handleAddCollection = async () => {
+    setSaving(true);
+    try {
+      const collection = await collectionsApi.create({
+        ...newCollection,
+        isVisible: false,
+      });
+      setCollections(prev => [...prev, collection]);
+      setNewCollection({ name: '', description: '', season: '', year: new Date().getFullYear() });
+      setIsAddingCollection(false);
+      toast({ title: 'Collection created', description: `"${collection.name}" has been added.` });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to create collection.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEditCollection = () => {
+  const handleEditCollection = async () => {
     if (!editingCollection) return;
-    setCollections(prev =>
-      prev.map(c => (c.id === editingCollection.id ? editingCollection : c))
-    );
-    setEditingCollection(null);
-    toast({ title: 'Collection updated', description: 'Changes have been saved.' });
+    setSaving(true);
+    try {
+      const updated = await collectionsApi.update(editingCollection.id, editingCollection);
+      setCollections(prev =>
+        prev.map(c => (c.id === editingCollection.id ? updated : c))
+      );
+      setEditingCollection(null);
+      toast({ title: 'Collection updated', description: 'Changes have been saved.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update collection.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleAddPiece = () => {
+  const handleAddPiece = async () => {
     if (!selectedCollection) return;
-    const piece: Piece = {
-      id: Date.now().toString(),
-      name: newPiece.name,
-      price: newPiece.price,
-      showPrice: true,
-      isAvailable: true,
-      isVisible: true,
-      image: '/placeholder.svg',
-    };
-    setCollections(prev =>
-      prev.map(c =>
-        c.id === selectedCollection ? { ...c, pieces: [...c.pieces, piece] } : c
-      )
-    );
-    setNewPiece({ name: '', price: 0 });
-    setIsAddingPiece(false);
-    toast({ title: 'Piece added', description: `"${piece.name}" has been added to the collection.` });
+    setSaving(true);
+    try {
+      const piece = await piecesApi.create({
+        collectionId: selectedCollection,
+        name: newPiece.name,
+        description: newPiece.description,
+        price: newPiece.price.toString(),
+        category: newPiece.category,
+        showPrice: true,
+        available: true,
+        isVisible: true,
+        image: '/placeholder.svg',
+      });
+      setPieces(prev => [...prev, piece]);
+      setNewPiece({ name: '', price: 0, description: '', category: 'ready-to-wear' });
+      setIsAddingPiece(false);
+      toast({ title: 'Piece added', description: `"${piece.name}" has been added to the collection.` });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to add piece.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEditPiece = () => {
-    if (!editingPiece || !selectedCollection) return;
-    setCollections(prev =>
-      prev.map(c =>
-        c.id === selectedCollection
-          ? { ...c, pieces: c.pieces.map(p => (p.id === editingPiece.id ? editingPiece : p)) }
-          : c
-      )
-    );
-    setEditingPiece(null);
-    toast({ title: 'Piece updated', description: 'Changes have been saved.' });
+  const handleEditPiece = async () => {
+    if (!editingPiece) return;
+    setSaving(true);
+    try {
+      const updated = await piecesApi.update(editingPiece.id, editingPiece);
+      setPieces(prev =>
+        prev.map(p => (p.id === editingPiece.id ? updated : p))
+      );
+      setEditingPiece(null);
+      toast({ title: 'Piece updated', description: 'Changes have been saved.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update piece.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteCollection = (collectionId: string) => {
-    setCollections(prev => prev.filter(c => c.id !== collectionId));
-    if (selectedCollection === collectionId) setSelectedCollection(null);
-    toast({ title: 'Collection deleted' });
+  const handleDeleteCollection = async (collectionId: string) => {
+    try {
+      await collectionsApi.delete(collectionId);
+      setCollections(prev => prev.filter(c => c.id !== collectionId));
+      if (selectedCollection === collectionId) {
+        setSelectedCollection(null);
+        setPieces([]);
+      }
+      toast({ title: 'Collection deleted' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to delete collection.', variant: 'destructive' });
+    }
   };
 
-  const handleDeletePiece = (pieceId: string) => {
-    if (!selectedCollection) return;
-    setCollections(prev =>
-      prev.map(c =>
-        c.id === selectedCollection
-          ? { ...c, pieces: c.pieces.filter(p => p.id !== pieceId) }
-          : c
-      )
-    );
-    toast({ title: 'Piece deleted' });
+  const handleDeletePiece = async (pieceId: string) => {
+    try {
+      await piecesApi.delete(pieceId);
+      setPieces(prev => prev.filter(p => p.id !== pieceId));
+      toast({ title: 'Piece deleted' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to delete piece.', variant: 'destructive' });
+    }
+  };
+
+  const handleImageUpload = async (pieceId: string, file: File) => {
+    try {
+      const { url } = await uploadApi.uploadImage(file);
+      await piecesApi.update(pieceId, { image: url });
+      setPieces(prev =>
+        prev.map(p => (p.id === pieceId ? { ...p, image: url } : p))
+      );
+      toast({ title: 'Image uploaded' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to upload image.', variant: 'destructive' });
+    }
   };
 
   const selectedCollectionData = collections.find(c => c.id === selectedCollection);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -309,7 +369,7 @@ export default function AdminDashboard() {
                       <div>
                         <h3 className="font-medium text-foreground">{collection.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {collection.season} {collection.year} • {collection.pieces.length} pieces
+                          {collection.season} {collection.year}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -368,110 +428,114 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
 
-                <div className="space-y-4">
-                  {selectedCollectionData.pieces.map((piece) => (
-                    <motion.div
-                      key={piece.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-4 border border-border rounded-lg"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-foreground">{piece.name}</h4>
-                            <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => setEditingPiece(piece)}>
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeletePiece(piece.id)}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                {loadingPieces ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-accent" />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pieces.map((piece) => (
+                      <motion.div
+                        key={piece.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-4 border border-border rounded-lg"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                            {piece.image && piece.image !== '/placeholder.svg' ? (
+                              <img src={piece.image} alt={piece.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-foreground">{piece.name}</h4>
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => setEditingPiece(piece)}>
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeletePiece(piece.id)}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+                              {/* Price */}
+                              <div>
+                                <label className="text-xs text-muted-foreground block mb-1">
+                                  Price (GH₵)
+                                </label>
+                                <Input
+                                  type="number"
+                                  value={piece.price || 0}
+                                  className="h-8 text-sm"
+                                  readOnly
+                                />
+                              </div>
+
+                              {/* Show Price Toggle */}
+                              <div className="flex flex-col justify-center">
+                                <label className="text-xs text-muted-foreground block mb-1">
+                                  Show Price
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={piece.showPrice}
+                                    onCheckedChange={() => togglePriceVisibility(piece.id)}
+                                  />
+                                  <DollarSign
+                                    className={`w-4 h-4 ${
+                                      piece.showPrice ? 'text-accent' : 'text-muted-foreground'
+                                    }`}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Availability Toggle */}
+                              <div className="flex flex-col justify-center">
+                                <label className="text-xs text-muted-foreground block mb-1">
+                                  Available
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={piece.available}
+                                    onCheckedChange={() => toggleAvailability(piece.id)}
+                                  />
+                                  <Package
+                                    className={`w-4 h-4 ${
+                                      piece.available ? 'text-accent' : 'text-muted-foreground'
+                                    }`}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Visibility Toggle */}
+                              <div className="flex flex-col justify-center">
+                                <label className="text-xs text-muted-foreground block mb-1">
+                                  Visible
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={piece.isVisible}
+                                    onCheckedChange={() => togglePieceVisibility(piece.id)}
+                                  />
+                                  {piece.isVisible ? (
+                                    <Eye className="w-4 h-4 text-accent" />
+                                  ) : (
+                                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-
-                          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {/* Price */}
-                            <div>
-                              <label className="text-xs text-muted-foreground block mb-1">
-                                Price (GH₵)
-                              </label>
-                              <Input
-                                type="number"
-                                value={piece.price}
-                                className="h-8 text-sm"
-                                readOnly
-                              />
-                            </div>
-
-                            {/* Show Price Toggle */}
-                            <div className="flex flex-col justify-center">
-                              <label className="text-xs text-muted-foreground block mb-1">
-                                Show Price
-                              </label>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={piece.showPrice}
-                                  onCheckedChange={() =>
-                                    togglePriceVisibility(selectedCollectionData.id, piece.id)
-                                  }
-                                />
-                                <DollarSign
-                                  className={`w-4 h-4 ${
-                                    piece.showPrice ? 'text-accent' : 'text-muted-foreground'
-                                  }`}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Availability Toggle */}
-                            <div className="flex flex-col justify-center">
-                              <label className="text-xs text-muted-foreground block mb-1">
-                                Available
-                              </label>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={piece.isAvailable}
-                                  onCheckedChange={() =>
-                                    toggleAvailability(selectedCollectionData.id, piece.id)
-                                  }
-                                />
-                                <Package
-                                  className={`w-4 h-4 ${
-                                    piece.isAvailable ? 'text-accent' : 'text-muted-foreground'
-                                  }`}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Visibility Toggle */}
-                            <div className="flex flex-col justify-center">
-                              <label className="text-xs text-muted-foreground block mb-1">
-                                Visible
-                              </label>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={piece.isVisible}
-                                  onCheckedChange={() =>
-                                    togglePieceVisibility(selectedCollectionData.id, piece.id)
-                                  }
-                                />
-                                {piece.isVisible ? (
-                                  <Eye className="w-4 h-4 text-accent" />
-                                ) : (
-                                  <EyeOff className="w-4 h-4 text-muted-foreground" />
-                                )}
-                              </div>
-                            </div>
-                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Upload Section */}
                 <div className="mt-6 p-6 border-2 border-dashed border-border rounded-lg text-center">
@@ -496,17 +560,6 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* API Integration Note */}
-        <div className="mt-8 p-4 bg-muted/50 border border-border rounded-lg">
-          <h3 className="font-medium text-foreground mb-2">Spring Boot API Integration</h3>
-          <p className="text-sm text-muted-foreground">
-            This dashboard uses placeholder API calls. Connect your Spring Boot backend by updating
-            the <code className="bg-muted px-1 rounded">src/services/api.ts</code> file with your
-            actual endpoints. Set <code className="bg-muted px-1 rounded">VITE_API_URL</code> in
-            your environment to configure the base URL.
-          </p>
         </div>
       </div>
 
@@ -539,7 +592,10 @@ export default function AdminDashboard() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingCollection(false)}>Cancel</Button>
-            <Button onClick={handleAddCollection} disabled={!newCollection.name}>Create Collection</Button>
+            <Button onClick={handleAddCollection} disabled={!newCollection.name || saving}>
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Create Collection
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -575,7 +631,10 @@ export default function AdminDashboard() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingCollection(null)}>Cancel</Button>
-            <Button onClick={handleEditCollection}>Save Changes</Button>
+            <Button onClick={handleEditCollection} disabled={saving}>
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -593,13 +652,20 @@ export default function AdminDashboard() {
               <Input id="piece-name" value={newPiece.name} onChange={e => setNewPiece(prev => ({ ...prev, name: e.target.value }))} placeholder="Piece name" />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="piece-description">Description</Label>
+              <Textarea id="piece-description" value={newPiece.description} onChange={e => setNewPiece(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe the piece" />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="piece-price">Price (GH₵)</Label>
               <Input id="piece-price" type="number" value={newPiece.price} onChange={e => setNewPiece(prev => ({ ...prev, price: parseFloat(e.target.value) }))} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingPiece(false)}>Cancel</Button>
-            <Button onClick={handleAddPiece} disabled={!newPiece.name}>Add Piece</Button>
+            <Button onClick={handleAddPiece} disabled={!newPiece.name || saving}>
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Add Piece
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -618,14 +684,21 @@ export default function AdminDashboard() {
                 <Input id="edit-piece-name" value={editingPiece.name} onChange={e => setEditingPiece(prev => prev ? { ...prev, name: e.target.value } : null)} />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="edit-piece-description">Description</Label>
+                <Textarea id="edit-piece-description" value={editingPiece.description} onChange={e => setEditingPiece(prev => prev ? { ...prev, description: e.target.value } : null)} />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-piece-price">Price (GH₵)</Label>
-                <Input id="edit-piece-price" type="number" value={editingPiece.price} onChange={e => setEditingPiece(prev => prev ? { ...prev, price: parseFloat(e.target.value) } : null)} />
+                <Input id="edit-piece-price" type="number" value={editingPiece.price || 0} onChange={e => setEditingPiece(prev => prev ? { ...prev, price: e.target.value } : null)} />
               </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingPiece(null)}>Cancel</Button>
-            <Button onClick={handleEditPiece}>Save Changes</Button>
+            <Button onClick={handleEditPiece} disabled={saving}>
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
