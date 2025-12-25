@@ -28,37 +28,56 @@ async function apiRequest<T>(
 }
 
 // Auth API
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  name: string;
+}
+
 export const authApi = {
-  login: async (email: string, password: string) => {
-    // TODO: Connect to Spring Boot /auth/login endpoint
+  login: async (email: string, password: string): Promise<{ token: string; user: User }> => {
     console.log('API Call: POST /auth/login', { email });
-    // Placeholder - replace with actual API call
-    // return apiRequest<{ token: string; user: User }>('/auth/login', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ email, password }),
-    // });
-    
-    // Mock response for development
-    if (email === 'designer@maame.com' && password === 'admin123') {
-      return { 
-        token: 'mock_jwt_token', 
-        user: { id: '1', email, role: 'ADMIN', name: 'Maame Designer' } 
-      };
+    try {
+      const response = await apiRequest<{ token: string; user: User }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      localStorage.setItem('auth_token', response.token);
+      return response;
+    } catch (error) {
+      // Fallback to mock auth for development
+      console.log('Using mock auth - backend not available');
+      if (email === 'designer@maame.com' && password === 'admin123') {
+        const mockResponse = { 
+          token: 'mock_jwt_token', 
+          user: { id: '1', email, role: 'ADMIN', name: 'Maame Designer' } 
+        };
+        localStorage.setItem('auth_token', mockResponse.token);
+        return mockResponse;
+      }
+      throw new Error('Invalid credentials');
     }
-    throw new Error('Invalid credentials');
   },
 
-  logout: async () => {
-    // TODO: Connect to Spring Boot /auth/logout endpoint
+  logout: async (): Promise<void> => {
     console.log('API Call: POST /auth/logout');
+    try {
+      await apiRequest<void>('/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.log('Logout API failed, clearing local token');
+    }
     localStorage.removeItem('auth_token');
   },
 
-  getCurrentUser: async () => {
-    // TODO: Connect to Spring Boot /auth/me endpoint
+  getCurrentUser: async (): Promise<User | null> => {
     console.log('API Call: GET /auth/me');
-    // return apiRequest<User>('/auth/me');
-    return null;
+    try {
+      return await apiRequest<User>('/auth/me');
+    } catch (error) {
+      console.error('Failed to get current user:', error);
+      return null;
+    }
   },
 };
 
@@ -117,159 +136,175 @@ export interface PublicPiece {
   category: 'ready-to-wear' | 'couture' | 'accessories';
 }
 
+const defaultCategories: Category[] = [
+  { id: 'all', name: 'All' },
+  { id: 'couture', name: 'Couture' },
+  { id: 'ready-to-wear', name: 'Ready-to-Wear' },
+  { id: 'accessories', name: 'Accessories' },
+];
+
 export const collectionsApi = {
   // Public endpoint - returns visible collections with visible pieces
   getPublic: async (): Promise<PublicCollection[]> => {
     console.log('API Call: GET /public/collections');
-    // return apiRequest<PublicCollection[]>('/public/collections');
-    return []; // Will fallback to mock data in component
+    try {
+      const data = await apiRequest<PublicCollection[]>('/public/collections');
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch public collections:', error);
+      return [];
+    }
   },
 
   getCategories: async (): Promise<Category[]> => {
     console.log('API Call: GET /categories');
-    // return apiRequest<Category[]>('/categories');
-    return [
-      { id: 'all', name: 'All' },
-      { id: 'couture', name: 'Couture' },
-      { id: 'ready-to-wear', name: 'Ready-to-Wear' },
-      { id: 'accessories', name: 'Accessories' },
-    ];
+    try {
+      const data = await apiRequest<Category[]>('/categories');
+      return data.length > 0 ? data : defaultCategories;
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      return defaultCategories;
+    }
   },
 
-  getAll: async () => {
-    // TODO: Connect to Spring Boot /collections endpoint
+  getAll: async (): Promise<Collection[]> => {
     console.log('API Call: GET /collections');
-    // return apiRequest<Collection[]>('/collections');
-    return [] as Collection[];
+    try {
+      return await apiRequest<Collection[]>('/collections');
+    } catch (error) {
+      console.error('Failed to fetch collections:', error);
+      return [];
+    }
   },
 
-  getById: async (id: string) => {
-    // TODO: Connect to Spring Boot /collections/{id} endpoint
+  getById: async (id: string): Promise<Collection | null> => {
     console.log('API Call: GET /collections/' + id);
-    // return apiRequest<Collection>(`/collections/${id}`);
-    return null;
+    try {
+      return await apiRequest<Collection>(`/collections/${id}`);
+    } catch (error) {
+      console.error('Failed to fetch collection:', error);
+      return null;
+    }
   },
 
-  create: async (data: Partial<Collection>) => {
-    // TODO: Connect to Spring Boot /collections endpoint
+  create: async (data: Partial<Collection>): Promise<Collection> => {
     console.log('API Call: POST /collections', data);
-    // return apiRequest<Collection>('/collections', {
-    //   method: 'POST',
-    //   body: JSON.stringify(data),
-    // });
-    return { id: Date.now().toString(), ...data } as Collection;
+    return apiRequest<Collection>('/collections', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 
-  update: async (id: string, data: Partial<Collection>) => {
-    // TODO: Connect to Spring Boot /collections/{id} endpoint
+  update: async (id: string, data: Partial<Collection>): Promise<Collection> => {
     console.log('API Call: PUT /collections/' + id, data);
-    // return apiRequest<Collection>(`/collections/${id}`, {
-    //   method: 'PUT',
-    //   body: JSON.stringify(data),
-    // });
-    return { id, ...data } as Collection;
+    return apiRequest<Collection>(`/collections/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   },
 
-  delete: async (id: string) => {
-    // TODO: Connect to Spring Boot /collections/{id} endpoint
+  delete: async (id: string): Promise<void> => {
     console.log('API Call: DELETE /collections/' + id);
-    // return apiRequest<void>(`/collections/${id}`, { method: 'DELETE' });
+    return apiRequest<void>(`/collections/${id}`, { method: 'DELETE' });
   },
 
-  toggleVisibility: async (id: string, isVisible: boolean) => {
-    // TODO: Connect to Spring Boot /collections/{id}/visibility endpoint
+  toggleVisibility: async (id: string, isVisible: boolean): Promise<Collection | void> => {
     console.log('API Call: PATCH /collections/' + id + '/visibility', { isVisible });
-    // return apiRequest<Collection>(`/collections/${id}/visibility`, {
-    //   method: 'PATCH',
-    //   body: JSON.stringify({ isVisible }),
-    // });
+    return apiRequest<Collection>(`/collections/${id}/visibility`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isVisible }),
+    });
   },
 };
 
 // Pieces API
 export const piecesApi = {
-  getByCollection: async (collectionId: string) => {
-    // TODO: Connect to Spring Boot /collections/{id}/pieces endpoint
+  getByCollection: async (collectionId: string): Promise<CollectionPiece[]> => {
     console.log('API Call: GET /collections/' + collectionId + '/pieces');
-    // return apiRequest<CollectionPiece[]>(`/collections/${collectionId}/pieces`);
-    return [] as CollectionPiece[];
+    try {
+      return await apiRequest<CollectionPiece[]>(`/collections/${collectionId}/pieces`);
+    } catch (error) {
+      console.error('Failed to fetch pieces:', error);
+      return [];
+    }
   },
 
-  getById: async (id: string) => {
-    // TODO: Connect to Spring Boot /pieces/{id} endpoint
+  getById: async (id: string): Promise<CollectionPiece | null> => {
     console.log('API Call: GET /pieces/' + id);
-    // return apiRequest<CollectionPiece>(`/pieces/${id}`);
-    return null;
+    try {
+      return await apiRequest<CollectionPiece>(`/pieces/${id}`);
+    } catch (error) {
+      console.error('Failed to fetch piece:', error);
+      return null;
+    }
   },
 
-  create: async (data: Partial<CollectionPiece>) => {
-    // TODO: Connect to Spring Boot /pieces endpoint
+  create: async (data: Partial<CollectionPiece>): Promise<CollectionPiece> => {
     console.log('API Call: POST /pieces', data);
-    // return apiRequest<CollectionPiece>('/pieces', {
-    //   method: 'POST',
-    //   body: JSON.stringify(data),
-    // });
-    return { id: Date.now().toString(), ...data } as CollectionPiece;
+    return apiRequest<CollectionPiece>('/pieces', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 
-  update: async (id: string, data: Partial<CollectionPiece>) => {
-    // TODO: Connect to Spring Boot /pieces/{id} endpoint
+  update: async (id: string, data: Partial<CollectionPiece>): Promise<CollectionPiece> => {
     console.log('API Call: PUT /pieces/' + id, data);
-    // return apiRequest<CollectionPiece>(`/pieces/${id}`, {
-    //   method: 'PUT',
-    //   body: JSON.stringify(data),
-    // });
-    return { id, ...data } as CollectionPiece;
+    return apiRequest<CollectionPiece>(`/pieces/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   },
 
-  delete: async (id: string) => {
-    // TODO: Connect to Spring Boot /pieces/{id} endpoint
+  delete: async (id: string): Promise<void> => {
     console.log('API Call: DELETE /pieces/' + id);
-    // return apiRequest<void>(`/pieces/${id}`, { method: 'DELETE' });
+    return apiRequest<void>(`/pieces/${id}`, { method: 'DELETE' });
   },
 
-  updatePricing: async (id: string, data: { price: number; showPrice: boolean }) => {
-    // TODO: Connect to Spring Boot /pieces/{id}/pricing endpoint
+  updatePricing: async (id: string, data: { price: number; showPrice: boolean }): Promise<CollectionPiece | void> => {
     console.log('API Call: PATCH /pieces/' + id + '/pricing', data);
-    // return apiRequest<CollectionPiece>(`/pieces/${id}/pricing`, {
-    //   method: 'PATCH',
-    //   body: JSON.stringify(data),
-    // });
+    return apiRequest<CollectionPiece>(`/pieces/${id}/pricing`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   },
 
-  updateAvailability: async (id: string, isAvailable: boolean) => {
-    // TODO: Connect to Spring Boot /pieces/{id}/availability endpoint
+  updateAvailability: async (id: string, isAvailable: boolean): Promise<CollectionPiece | void> => {
     console.log('API Call: PATCH /pieces/' + id + '/availability', { isAvailable });
-    // return apiRequest<CollectionPiece>(`/pieces/${id}/availability`, {
-    //   method: 'PATCH',
-    //   body: JSON.stringify({ isAvailable }),
-    // });
+    return apiRequest<CollectionPiece>(`/pieces/${id}/availability`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isAvailable }),
+    });
   },
 };
 
 // Upload API
 export const uploadApi = {
-  uploadImage: async (file: File) => {
-    // TODO: Connect to Spring Boot /uploads/images endpoint
+  uploadImage: async (file: File): Promise<{ url: string }> => {
     console.log('API Call: POST /uploads/images', file.name);
-    // const formData = new FormData();
-    // formData.append('file', file);
-    // return apiRequest<{ url: string }>('/uploads/images', {
-    //   method: 'POST',
-    //   headers: {}, // Let browser set Content-Type for FormData
-    //   body: formData,
-    // });
+    const token = localStorage.getItem('auth_token');
+    const formData = new FormData();
+    formData.append('file', file);
     
-    // Mock response - return a placeholder URL
-    return { url: URL.createObjectURL(file) };
+    const response = await fetch(`${BASE_URL}/uploads/images`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image');
+    }
+
+    return response.json();
   },
 
-  deleteImage: async (imageUrl: string) => {
-    // TODO: Connect to Spring Boot /uploads/images endpoint
+  deleteImage: async (imageUrl: string): Promise<void> => {
     console.log('API Call: DELETE /uploads/images', { imageUrl });
-    // return apiRequest<void>('/uploads/images', {
-    //   method: 'DELETE',
-    //   body: JSON.stringify({ url: imageUrl }),
-    // });
+    return apiRequest<void>('/uploads/images', {
+      method: 'DELETE',
+      body: JSON.stringify({ url: imageUrl }),
+    });
   },
 };
