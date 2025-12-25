@@ -21,9 +21,38 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+
+interface Piece {
+  id: string;
+  name: string;
+  price: number;
+  showPrice: boolean;
+  isAvailable: boolean;
+  isVisible: boolean;
+  image: string;
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  season: string;
+  year: number;
+  isVisible: boolean;
+  pieces: Piece[];
+}
 
 // Mock data for development - will be replaced with API calls
-const mockCollections = [
+const mockCollections: Collection[] = [
   {
     id: '1',
     name: 'Harmattan Elegance',
@@ -77,10 +106,18 @@ export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [collections, setCollections] = useState(mockCollections);
+  const [collections, setCollections] = useState<Collection[]>(mockCollections);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  
+  // Modal states
   const [isAddingCollection, setIsAddingCollection] = useState(false);
   const [isAddingPiece, setIsAddingPiece] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [editingPiece, setEditingPiece] = useState<Piece | null>(null);
+  
+  // Form states
+  const [newCollection, setNewCollection] = useState({ name: '', description: '', season: '', year: new Date().getFullYear() });
+  const [newPiece, setNewPiece] = useState({ name: '', price: 0 });
 
   const handleLogout = async () => {
     await logout();
@@ -97,7 +134,6 @@ export default function AdminDashboard() {
       title: 'Collection updated',
       description: 'Visibility setting has been changed.',
     });
-    // TODO: Call collectionsApi.toggleVisibility(collectionId, !collection.isVisible)
   };
 
   const togglePieceVisibility = (collectionId: string, pieceId: string) => {
@@ -113,7 +149,6 @@ export default function AdminDashboard() {
           : c
       )
     );
-    // TODO: Call piecesApi.update(pieceId, { isVisible: !piece.isVisible })
   };
 
   const togglePriceVisibility = (collectionId: string, pieceId: string) => {
@@ -129,7 +164,6 @@ export default function AdminDashboard() {
           : c
       )
     );
-    // TODO: Call piecesApi.updatePricing(pieceId, { showPrice: !piece.showPrice })
   };
 
   const toggleAvailability = (collectionId: string, pieceId: string) => {
@@ -145,7 +179,80 @@ export default function AdminDashboard() {
           : c
       )
     );
-    // TODO: Call piecesApi.updateAvailability(pieceId, !piece.isAvailable)
+  };
+
+  const handleAddCollection = () => {
+    const collection: Collection = {
+      id: Date.now().toString(),
+      ...newCollection,
+      isVisible: false,
+      pieces: [],
+    };
+    setCollections(prev => [...prev, collection]);
+    setNewCollection({ name: '', description: '', season: '', year: new Date().getFullYear() });
+    setIsAddingCollection(false);
+    toast({ title: 'Collection created', description: `"${collection.name}" has been added.` });
+  };
+
+  const handleEditCollection = () => {
+    if (!editingCollection) return;
+    setCollections(prev =>
+      prev.map(c => (c.id === editingCollection.id ? editingCollection : c))
+    );
+    setEditingCollection(null);
+    toast({ title: 'Collection updated', description: 'Changes have been saved.' });
+  };
+
+  const handleAddPiece = () => {
+    if (!selectedCollection) return;
+    const piece: Piece = {
+      id: Date.now().toString(),
+      name: newPiece.name,
+      price: newPiece.price,
+      showPrice: true,
+      isAvailable: true,
+      isVisible: true,
+      image: '/placeholder.svg',
+    };
+    setCollections(prev =>
+      prev.map(c =>
+        c.id === selectedCollection ? { ...c, pieces: [...c.pieces, piece] } : c
+      )
+    );
+    setNewPiece({ name: '', price: 0 });
+    setIsAddingPiece(false);
+    toast({ title: 'Piece added', description: `"${piece.name}" has been added to the collection.` });
+  };
+
+  const handleEditPiece = () => {
+    if (!editingPiece || !selectedCollection) return;
+    setCollections(prev =>
+      prev.map(c =>
+        c.id === selectedCollection
+          ? { ...c, pieces: c.pieces.map(p => (p.id === editingPiece.id ? editingPiece : p)) }
+          : c
+      )
+    );
+    setEditingPiece(null);
+    toast({ title: 'Piece updated', description: 'Changes have been saved.' });
+  };
+
+  const handleDeleteCollection = (collectionId: string) => {
+    setCollections(prev => prev.filter(c => c.id !== collectionId));
+    if (selectedCollection === collectionId) setSelectedCollection(null);
+    toast({ title: 'Collection deleted' });
+  };
+
+  const handleDeletePiece = (pieceId: string) => {
+    if (!selectedCollection) return;
+    setCollections(prev =>
+      prev.map(c =>
+        c.id === selectedCollection
+          ? { ...c, pieces: c.pieces.filter(p => p.id !== pieceId) }
+          : c
+      )
+    );
+    toast({ title: 'Piece deleted' });
   };
 
   const selectedCollectionData = collections.find(c => c.id === selectedCollection);
@@ -238,11 +345,11 @@ export default function AdminDashboard() {
                         onCheckedChange={() => toggleCollectionVisibility(selectedCollectionData.id)}
                       />
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setEditingCollection(selectedCollectionData)}>
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
                     </Button>
-                    <Button variant="destructive" size="sm">
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteCollection(selectedCollectionData.id)}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -277,10 +384,10 @@ export default function AdminDashboard() {
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium text-foreground">{piece.name}</h4>
                             <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" onClick={() => setEditingPiece(piece)}>
                                 <Edit className="w-4 h-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" className="text-destructive">
+                              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeletePiece(piece.id)}>
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
@@ -296,9 +403,7 @@ export default function AdminDashboard() {
                                 type="number"
                                 value={piece.price}
                                 className="h-8 text-sm"
-                                onChange={() => {
-                                  // TODO: Call piecesApi.updatePricing
-                                }}
+                                readOnly
                               />
                             </div>
 
@@ -404,6 +509,126 @@ export default function AdminDashboard() {
           </p>
         </div>
       </div>
+
+      {/* Add Collection Modal */}
+      <Dialog open={isAddingCollection} onOpenChange={setIsAddingCollection}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Collection</DialogTitle>
+            <DialogDescription>Create a new collection to organize your pieces.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" value={newCollection.name} onChange={e => setNewCollection(prev => ({ ...prev, name: e.target.value }))} placeholder="Collection name" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" value={newCollection.description} onChange={e => setNewCollection(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe the collection" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="season">Season</Label>
+                <Input id="season" value={newCollection.season} onChange={e => setNewCollection(prev => ({ ...prev, season: e.target.value }))} placeholder="e.g. Fall/Winter" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="year">Year</Label>
+                <Input id="year" type="number" value={newCollection.year} onChange={e => setNewCollection(prev => ({ ...prev, year: parseInt(e.target.value) }))} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddingCollection(false)}>Cancel</Button>
+            <Button onClick={handleAddCollection} disabled={!newCollection.name}>Create Collection</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Collection Modal */}
+      <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Collection</DialogTitle>
+            <DialogDescription>Update collection details.</DialogDescription>
+          </DialogHeader>
+          {editingCollection && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Name</Label>
+                <Input id="edit-name" value={editingCollection.name} onChange={e => setEditingCollection(prev => prev ? { ...prev, name: e.target.value } : null)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea id="edit-description" value={editingCollection.description} onChange={e => setEditingCollection(prev => prev ? { ...prev, description: e.target.value } : null)} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-season">Season</Label>
+                  <Input id="edit-season" value={editingCollection.season} onChange={e => setEditingCollection(prev => prev ? { ...prev, season: e.target.value } : null)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-year">Year</Label>
+                  <Input id="edit-year" type="number" value={editingCollection.year} onChange={e => setEditingCollection(prev => prev ? { ...prev, year: parseInt(e.target.value) } : null)} />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingCollection(null)}>Cancel</Button>
+            <Button onClick={handleEditCollection}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Piece Modal */}
+      <Dialog open={isAddingPiece} onOpenChange={setIsAddingPiece}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Piece</DialogTitle>
+            <DialogDescription>Add a new piece to this collection.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="piece-name">Name</Label>
+              <Input id="piece-name" value={newPiece.name} onChange={e => setNewPiece(prev => ({ ...prev, name: e.target.value }))} placeholder="Piece name" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="piece-price">Price (GH₵)</Label>
+              <Input id="piece-price" type="number" value={newPiece.price} onChange={e => setNewPiece(prev => ({ ...prev, price: parseFloat(e.target.value) }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddingPiece(false)}>Cancel</Button>
+            <Button onClick={handleAddPiece} disabled={!newPiece.name}>Add Piece</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Piece Modal */}
+      <Dialog open={!!editingPiece} onOpenChange={() => setEditingPiece(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Piece</DialogTitle>
+            <DialogDescription>Update piece details.</DialogDescription>
+          </DialogHeader>
+          {editingPiece && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-piece-name">Name</Label>
+                <Input id="edit-piece-name" value={editingPiece.name} onChange={e => setEditingPiece(prev => prev ? { ...prev, name: e.target.value } : null)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-piece-price">Price (GH₵)</Label>
+                <Input id="edit-piece-price" type="number" value={editingPiece.price} onChange={e => setEditingPiece(prev => prev ? { ...prev, price: parseFloat(e.target.value) } : null)} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingPiece(null)}>Cancel</Button>
+            <Button onClick={handleEditPiece}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
