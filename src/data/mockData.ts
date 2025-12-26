@@ -135,7 +135,7 @@ Trained at the Accra College of Art and mentored by master kente weavers, Alex's
   phone: '+233 30 277 0000',
   social: {
     instagram: '@alexblackgh',
-    pinterest: 'alexblackatelier'
+    pinterest: 'alexblack'
   }
 };
 
