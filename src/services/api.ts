@@ -1,5 +1,5 @@
 // API Configuration - Update BASE_URL to your Spring Boot backend
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://alexblack-master-cb2c065.onrender.com/api';
 
 // Helper function for API requests
 async function apiRequest<T>(
