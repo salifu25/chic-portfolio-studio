@@ -265,7 +265,7 @@ export const piecesApi = {
   getByCollection: async (collectionId: string): Promise<CollectionPiece[]> => {
     console.log('API Call: GET /collections/' + collectionId + '/pieces');
     try {
-      return await apiRequest<CollectionPiece[]>(`/collections/${collectionId}/pieces`);
+      return await apiRequest<CollectionPiece[]>(`/pieces/collection/${collectionId}`);
     } catch (error) {
       console.error('Failed to fetch pieces:', error);
       return [];
