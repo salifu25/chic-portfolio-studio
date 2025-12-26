@@ -78,8 +78,9 @@ export default function AdminDashboard() {
   const [editingPiece, setEditingPiece] = useState<CollectionPiece | null>(null);
   
   // Form states
-  const [newCollection, setNewCollection] = useState({ name: '', description: '', season: '', year: new Date().getFullYear() });
-  const [newPiece, setNewPiece] = useState({ name: '', price: 0, description: '', category: 'ready-to-wear' as const });
+  const [newCollection, setNewCollection] = useState({ name: '', description: '', season: '', year: new Date().getFullYear(), coverImage: '' });
+  const [newPiece, setNewPiece] = useState({ name: '', price: 0, description: '', category: 'ready-to-wear' as const, image: '' });
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Fetch collections on mount
   useEffect(() => {
@@ -200,13 +201,33 @@ export default function AdminDashboard() {
         isVisible: false,
       });
       setCollections(prev => [...prev, collection]);
-      setNewCollection({ name: '', description: '', season: '', year: new Date().getFullYear() });
+      setNewCollection({ name: '', description: '', season: '', year: new Date().getFullYear(), coverImage: '' });
       setIsAddingCollection(false);
       toast({ title: 'Collection created', description: `"${collection.name}" has been added.` });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to create collection.', variant: 'destructive' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCollectionCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingImage(true);
+    try {
+      const { url } = await uploadApi.uploadImage(file);
+      if (isEditing && editingCollection) {
+        setEditingCollection(prev => prev ? { ...prev, coverImage: url } : null);
+      } else {
+        setNewCollection(prev => ({ ...prev, coverImage: url }));
+      }
+      toast({ title: 'Image uploaded' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to upload image.', variant: 'destructive' });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -240,16 +261,36 @@ export default function AdminDashboard() {
         showPrice: true,
         available: true,
         isVisible: true,
-        image: '/placeholder.svg',
+        image: newPiece.image || '/placeholder.svg',
       });
       setPieces(prev => [...prev, piece]);
-      setNewPiece({ name: '', price: 0, description: '', category: 'ready-to-wear' });
+      setNewPiece({ name: '', price: 0, description: '', category: 'ready-to-wear', image: '' });
       setIsAddingPiece(false);
       toast({ title: 'Piece added', description: `"${piece.name}" has been added to the collection.` });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to add piece.', variant: 'destructive' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePieceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingImage(true);
+    try {
+      const { url } = await uploadApi.uploadImage(file);
+      if (isEditing && editingPiece) {
+        setEditingPiece(prev => prev ? { ...prev, image: url } : null);
+      } else {
+        setNewPiece(prev => ({ ...prev, image: url }));
+      }
+      toast({ title: 'Image uploaded' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to upload image.', variant: 'destructive' });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -589,10 +630,32 @@ export default function AdminDashboard() {
                 <Input id="year" type="number" value={newCollection.year} onChange={e => setNewCollection(prev => ({ ...prev, year: parseInt(e.target.value) }))} />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Cover Image</Label>
+              <div className="flex items-center gap-4">
+                {newCollection.coverImage ? (
+                  <img src={newCollection.coverImage} alt="Cover preview" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                ) : (
+                  <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center border border-border">
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleCollectionCoverUpload(e, false)}
+                    disabled={uploadingImage}
+                    className="cursor-pointer"
+                  />
+                  {uploadingImage && <p className="text-xs text-muted-foreground mt-1">Uploading...</p>}
+                </div>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingCollection(false)}>Cancel</Button>
-            <Button onClick={handleAddCollection} disabled={!newCollection.name || saving}>
+            <Button onClick={handleAddCollection} disabled={!newCollection.name || saving || uploadingImage}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Create Collection
             </Button>
@@ -627,11 +690,33 @@ export default function AdminDashboard() {
                   <Input id="edit-year" type="number" value={editingCollection.year} onChange={e => setEditingCollection(prev => prev ? { ...prev, year: parseInt(e.target.value) } : null)} />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Cover Image</Label>
+                <div className="flex items-center gap-4">
+                  {editingCollection.coverImage ? (
+                    <img src={editingCollection.coverImage} alt="Cover preview" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                  ) : (
+                    <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center border border-border">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleCollectionCoverUpload(e, true)}
+                      disabled={uploadingImage}
+                      className="cursor-pointer"
+                    />
+                    {uploadingImage && <p className="text-xs text-muted-foreground mt-1">Uploading...</p>}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingCollection(null)}>Cancel</Button>
-            <Button onClick={handleEditCollection} disabled={saving}>
+            <Button onClick={handleEditCollection} disabled={saving || uploadingImage}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
@@ -659,10 +744,32 @@ export default function AdminDashboard() {
               <Label htmlFor="piece-price">Price (GH₵)</Label>
               <Input id="piece-price" type="number" value={newPiece.price} onChange={e => setNewPiece(prev => ({ ...prev, price: parseFloat(e.target.value) }))} />
             </div>
+            <div className="space-y-2">
+              <Label>Image</Label>
+              <div className="flex items-center gap-4">
+                {newPiece.image ? (
+                  <img src={newPiece.image} alt="Piece preview" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                ) : (
+                  <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center border border-border">
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePieceImageUpload(e, false)}
+                    disabled={uploadingImage}
+                    className="cursor-pointer"
+                  />
+                  {uploadingImage && <p className="text-xs text-muted-foreground mt-1">Uploading...</p>}
+                </div>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingPiece(false)}>Cancel</Button>
-            <Button onClick={handleAddPiece} disabled={!newPiece.name || saving}>
+            <Button onClick={handleAddPiece} disabled={!newPiece.name || saving || uploadingImage}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Add Piece
             </Button>
@@ -691,11 +798,33 @@ export default function AdminDashboard() {
                 <Label htmlFor="edit-piece-price">Price (GH₵)</Label>
                 <Input id="edit-piece-price" type="number" value={editingPiece.price || 0} onChange={e => setEditingPiece(prev => prev ? { ...prev, price: e.target.value } : null)} />
               </div>
+              <div className="space-y-2">
+                <Label>Image</Label>
+                <div className="flex items-center gap-4">
+                  {editingPiece.image && editingPiece.image !== '/placeholder.svg' ? (
+                    <img src={editingPiece.image} alt="Piece preview" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                  ) : (
+                    <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center border border-border">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handlePieceImageUpload(e, true)}
+                      disabled={uploadingImage}
+                      className="cursor-pointer"
+                    />
+                    {uploadingImage && <p className="text-xs text-muted-foreground mt-1">Uploading...</p>}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingPiece(null)}>Cancel</Button>
-            <Button onClick={handleEditPiece} disabled={saving}>
+            <Button onClick={handleEditPiece} disabled={saving || uploadingImage}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
