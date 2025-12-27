@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { designerInfo } from '@/data/mockData';
 
 export function Footer() {
@@ -34,7 +35,15 @@ export function Footer() {
           </div>
         </div>
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="font-mono text-xs text-muted-foreground">© {currentYear} Alex Black. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <p className="font-mono text-xs text-muted-foreground">© {currentYear} Alex Black. All rights reserved.</p>
+            <Link 
+              to="/admin/login" 
+              className="font-mono text-xs text-muted-foreground/50 hover:text-primary transition-colors"
+            >
+              Admin
+            </Link>
+          </div>
           <div className="flex gap-6">
             <a href="#" className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors">Instagram</a>
             <a href="#" className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors">Pinterest</a>
