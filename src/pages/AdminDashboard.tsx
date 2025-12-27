@@ -578,16 +578,16 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
-                {/* Upload Section */}
-                <div className="mt-6 p-6 border-2 border-dashed border-border rounded-lg text-center">
-                  <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Drag and drop images here, or click to upload
-                  </p>
-                  <Button variant="outline" size="sm" className="mt-3">
-                    Choose Files
-                  </Button>
-                </div>
+                {/*/!* Upload Section *!/*/}
+                {/*<div className="mt-6 p-6 border-2 border-dashed border-border rounded-lg text-center">*/}
+                {/*  <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />*/}
+                {/*  <p className="text-sm text-muted-foreground">*/}
+                {/*    Drag and drop images here, or click to upload*/}
+                {/*  </p>*/}
+                {/*  <Button variant="outline" size="sm" className="mt-3">*/}
+                {/*    Choose Files*/}
+                {/*  </Button>*/}
+                {/*</div>*/}
               </div>
             ) : (
               <div className="bg-card border border-border rounded-lg p-12 text-center">
