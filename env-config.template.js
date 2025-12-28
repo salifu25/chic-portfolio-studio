@@ -1,3 +1,3 @@
 window._env_ = {
-    VITE_API_URL: "__VITE_API_URL__"
+    VITE_API_URL: "http://backend:8080/api"
 };
