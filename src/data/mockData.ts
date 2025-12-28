@@ -52,7 +52,7 @@ export const collections: Collection[] = [
       },
       {
         id: 'eb-003',
-        name: 'Bloom Clutch',
+        name: 'Bloom Clutches',
         description: 'Sculptural leather clutch with floral brass hardware',
         image: pieceClutch,
         price: 'GH₵ 8,200',
