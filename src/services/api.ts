@@ -1,5 +1,5 @@
 // API Configuration - Update BASE_URL to your Spring Boot backend
-const BASE_URL: string = window._env_?.VITE_API_URL ?? 'http://backend:8080/api';
+const BASE_URL: string = 'http://127.0.0.1:8080/api';
 
 // Helper function for API requests
 async function apiRequest<T>(
