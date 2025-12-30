@@ -1,5 +1,5 @@
 // API Configuration - Update BASE_URL to your Spring Boot backend
-const BASE_URL: string = 'http://51.57.63.126:8080/api';
+const BASE_URL: string = 'https://alexblack.store/api';
 
 // Helper function for API requests
 async function apiRequest<T>(
