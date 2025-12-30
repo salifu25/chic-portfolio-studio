@@ -106,14 +106,6 @@ export default function AdminLogin() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-            <p className="text-xs text-muted-foreground text-center">
-              <strong>Development credentials:</strong><br />
-              Email: designer@maame.com<br />
-              Password: admin123
-            </p>
-          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
