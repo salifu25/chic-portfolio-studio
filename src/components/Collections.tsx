@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { collections as mockCollections, categories as mockCategories, type Piece } from '@/data/mockData';
+import { collections as mockCollections, categories as mockCategories } from '@/data/mockData';
 import { PieceModal } from '@/components/PieceModal';
-import { collectionsApi, type PublicCollection, type Category } from '@/services/api';
+import { collectionsApi, type PublicCollection, type PublicPiece, type Category } from '@/services/api';
 
 export function Collections() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
+  const [selectedPiece, setSelectedPiece] = useState<(PublicPiece & { collectionName?: string }) | null>(null);
   const [collections, setCollections] = useState<PublicCollection[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +52,9 @@ export function Collections() {
   const filteredPieces =
     activeCategory === 'all'
       ? allPieces
-      : allPieces.filter((piece) => piece.category === activeCategory);
+      : allPieces.filter((piece) => 
+          piece.category === activeCategory || piece.categoryId === activeCategory
+        );
 
   return (
     <section id="collections" className="section-padding-xl relative kente-pattern">

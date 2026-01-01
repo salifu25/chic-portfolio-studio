@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Piece } from '@/data/mockData';
+import type { PublicPiece } from '@/services/api';
 
 interface PieceModalProps {
-  piece: Piece | null;
+  piece: (PublicPiece & { collectionName?: string }) | null;
   onClose: () => void;
 }
 
@@ -51,7 +51,7 @@ export function PieceModal({ piece, onClose }: PieceModalProps) {
             <div className="p-8 lg:p-12 space-y-6">
               <div>
                 <p className="text-sm tracking-[0.2em] uppercase text-gold mb-2">
-                  {piece.category.replace('-', ' ')}
+                  {piece.category?.replace('-', ' ') || 'Collection Piece'}
                 </p>
                 <h2 className="font-serif text-3xl lg:text-4xl mb-4">
                   {piece.name}
