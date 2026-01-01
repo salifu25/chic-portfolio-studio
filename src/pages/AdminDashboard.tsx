@@ -118,6 +118,7 @@ export default function AdminDashboard() {
   const fetchCategories = async () => {
     try {
       const data = await categoriesApi.getAll();
+      console.log('Categories fetched in AdminDashboard:', data);
       setCategories(data);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
