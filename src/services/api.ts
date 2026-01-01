@@ -151,9 +151,10 @@ export const categoriesApi = {
     console.log('API Call: GET /categories');
     try {
       const data = await apiRequest<Category[]>('/categories');
+      console.log('Categories fetched successfully:', data);
       return data.length > 0 ? data : defaultCategories;
     } catch (error) {
-      console.error('Failed to fetch categories:', error);
+      console.log('Categories API failed, using default categories:', error);
       return defaultCategories;
     }
   },
