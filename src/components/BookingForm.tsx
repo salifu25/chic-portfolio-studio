@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { bookingsApi, BookingRequest } from '@/services/api';
 
 const appointmentTypes = [
   'Bespoke Consultation',
@@ -25,18 +26,37 @@ export function BookingForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // TODO: Integrate with backend API
-    // Placeholder for appointment booking logic
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const formData = new FormData(e.currentTarget);
+    
+    const bookingData: BookingRequest = {
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string || undefined,
+      appointmentType: formData.get('appointmentType') as string,
+      preferredDate: formData.get('preferredDate') as string || undefined,
+      message: formData.get('message') as string || undefined,
+    };
 
-    toast({
-      title: 'Request Received',
-      description:
-        'Thank you for your interest. We will contact you within 24 hours to confirm your appointment.',
-    });
+    try {
+      await bookingsApi.create(bookingData);
+      
+      toast({
+        title: 'Request Received',
+        description:
+          'Thank you for your interest. We will contact you within 24 hours to confirm your appointment.',
+      });
 
-    setIsSubmitting(false);
-    (e.target as HTMLFormElement).reset();
+      (e.target as HTMLFormElement).reset();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to submit your request. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
