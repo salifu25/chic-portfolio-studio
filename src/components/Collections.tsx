@@ -49,12 +49,18 @@ export function Collections() {
     }))
   );
 
+  // Find the active category name for filtering
+  const activeCategoryObj = categories.find(c => c.id === activeCategory);
+  const activeCategoryName = activeCategoryObj?.name?.toLowerCase().replace(/\s+/g, '-');
+
   const filteredPieces =
-    activeCategory === 'all'
+    activeCategory === 'all' || activeCategoryName === 'all'
       ? allPieces
-      : allPieces.filter((piece) => 
-          piece.category === activeCategory || piece.categoryId === activeCategory
-        );
+      : allPieces.filter((piece) => {
+          const pieceCategory = piece.category?.toLowerCase();
+          return pieceCategory === activeCategoryName || 
+                 piece.categoryId === activeCategory;
+        });
 
   return (
     <section id="collections" className="section-padding-xl relative kente-pattern">
