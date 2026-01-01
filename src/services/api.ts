@@ -264,9 +264,9 @@ export const collectionsApi = {
   },
 
   getCategories: async (): Promise<Category[]> => {
-    console.log('API Call: GET /categories');
+    console.log('API Call: GET /public/categories');
     try {
-      const data = await apiRequest<Category[]>('/categories');
+      const data = await apiRequest<Category[]>('/public/categories');
       return data.length > 0 ? data : defaultCategories;
     } catch (error) {
       console.error('Failed to fetch categories:', error);
