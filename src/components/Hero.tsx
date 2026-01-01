@@ -44,7 +44,7 @@ export function Hero() {
             transition={{ duration: 0.8 }}
             className="font-mono text-xs tracking-dramatic uppercase text-primary mb-8"
           >
-            ▸ Accra, Ghana — Est. 2018
+            Accra, Ghana — Est. 2018
           </motion.p>
 
           {/* Main headline with split reveal */}
