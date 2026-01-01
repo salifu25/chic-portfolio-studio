@@ -135,7 +135,8 @@ export interface PublicPiece {
   image: string;
   price?: string;
   available: boolean;
-  category: 'ready-to-wear' | 'couture' | 'accessories';
+  category?: string;
+  categoryId?: string;
 }
 
 const defaultCategories: Category[] = [
