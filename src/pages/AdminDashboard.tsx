@@ -12,7 +12,8 @@ import {
   DollarSign,
   Image as ImageIcon,
   Settings,
-  Loader2
+  Loader2,
+  Tag
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +32,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { collectionsApi, piecesApi, uploadApi, Collection, CollectionPiece } from '@/services/api';
+import { collectionsApi, piecesApi, uploadApi, categoriesApi, Collection, CollectionPiece, Category } from '@/services/api';
 
 // Mock data for fallback when API is unavailable
 const mockCollections: Collection[] = [
@@ -65,6 +66,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [pieces, setPieces] = useState<CollectionPiece[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,17 +76,20 @@ export default function AdminDashboard() {
   // Modal states
   const [isAddingCollection, setIsAddingCollection] = useState(false);
   const [isAddingPiece, setIsAddingPiece] = useState(false);
+  const [isManagingCategories, setIsManagingCategories] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [editingPiece, setEditingPiece] = useState<CollectionPiece | null>(null);
   
   // Form states
-  const [newCollection, setNewCollection] = useState({ name: '', description: '', season: '', year: new Date().getFullYear(), coverImage: '' });
+  const [newCollection, setNewCollection] = useState({ name: '', description: '', season: '', year: new Date().getFullYear(), coverImage: '', categoryId: '' });
   const [newPiece, setNewPiece] = useState({ name: '', price: 0, description: '', category: 'ready-to-wear' as const, image: '' });
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Fetch collections on mount
+  // Fetch collections and categories on mount
   useEffect(() => {
     fetchCollections();
+    fetchCategories();
   }, []);
 
   // Fetch pieces when collection is selected
@@ -107,6 +112,40 @@ export default function AdminDashboard() {
       toast({ title: 'Using offline data', description: 'Could not connect to server.', variant: 'destructive' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const data = await categoriesApi.getAll();
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setSaving(true);
+    try {
+      const category = await categoriesApi.create({ name: newCategoryName.trim() });
+      setCategories(prev => [...prev, category]);
+      setNewCategoryName('');
+      toast({ title: 'Category created', description: `"${category.name}" has been added.` });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to create category.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await categoriesApi.delete(categoryId);
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+      toast({ title: 'Category deleted' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to delete category.', variant: 'destructive' });
     }
   };
 
@@ -201,7 +240,7 @@ export default function AdminDashboard() {
         isVisible: false,
       });
       setCollections(prev => [...prev, collection]);
-      setNewCollection({ name: '', description: '', season: '', year: new Date().getFullYear(), coverImage: '' });
+      setNewCollection({ name: '', description: '', season: '', year: new Date().getFullYear(), coverImage: '', categoryId: '' });
       setIsAddingCollection(false);
       toast({ title: 'Collection created', description: `"${collection.name}" has been added.` });
     } catch (error) {
@@ -384,14 +423,24 @@ export default function AdminDashboard() {
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-display text-xl text-foreground">Collections</h2>
-                <Button
-                  size="sm"
-                  onClick={() => setIsAddingCollection(true)}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  New
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsManagingCategories(true)}
+                  >
+                    <Tag className="w-4 h-4 mr-1" />
+                    Categories
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setIsAddingCollection(true)}
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    New
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -631,6 +680,22 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <select
+                id="category"
+                value={newCollection.categoryId}
+                onChange={e => setNewCollection(prev => ({ ...prev, categoryId: e.target.value }))}
+                className="w-full h-10 px-3 bg-background border border-border rounded-md text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none"
+              >
+                <option value="">Select a category</option>
+                {categories.filter(c => c.id !== 'all').map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
               <Label>Cover Image</Label>
               <div className="flex items-center gap-4">
                 {newCollection.coverImage ? (
@@ -675,6 +740,22 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Name</Label>
                 <Input id="edit-name" value={editingCollection.name} onChange={e => setEditingCollection(prev => prev ? { ...prev, name: e.target.value } : null)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <select
+                  id="edit-category"
+                  value={editingCollection.categoryId || ''}
+                  onChange={e => setEditingCollection(prev => prev ? { ...prev, categoryId: e.target.value } : null)}
+                  className="w-full h-10 px-3 bg-background border border-border rounded-md text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none"
+                >
+                  <option value="">Select a category</option>
+                  {categories.filter(c => c.id !== 'all').map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-description">Description</Label>
@@ -828,6 +909,51 @@ export default function AdminDashboard() {
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Categories Modal */}
+      <Dialog open={isManagingCategories} onOpenChange={setIsManagingCategories}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manage Categories</DialogTitle>
+            <DialogDescription>Create and manage collection categories.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex gap-2">
+              <Input
+                value={newCategoryName}
+                onChange={e => setNewCategoryName(e.target.value)}
+                placeholder="New category name"
+                className="flex-1"
+              />
+              <Button onClick={handleAddCategory} disabled={!newCategoryName.trim() || saving}>
+                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                <Plus className="w-4 h-4 mr-1" />
+                Add
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {categories.filter(c => c.id !== 'all').map((category) => (
+                <div key={category.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                  <span className="text-foreground">{category.name}</span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteCategory(category.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {categories.filter(c => c.id !== 'all').length === 0 && (
+                <p className="text-center text-muted-foreground py-4">No categories yet. Add one above.</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsManagingCategories(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

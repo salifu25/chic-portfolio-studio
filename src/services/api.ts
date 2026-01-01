@@ -89,6 +89,8 @@ export interface Collection {
   season: string;
   year: number;
   coverImage?: string;
+  categoryId?: string;
+  category?: Category;
   isVisible: boolean;
   createdAt: string;
   updatedAt: string;
@@ -142,6 +144,110 @@ const defaultCategories: Category[] = [
   { id: 'ready-to-wear', name: 'Ready-to-Wear' },
   { id: 'accessories', name: 'Accessories' },
 ];
+
+// Categories API
+export const categoriesApi = {
+  getAll: async (): Promise<Category[]> => {
+    console.log('API Call: GET /categories');
+    try {
+      const data = await apiRequest<Category[]>('/categories');
+      return data.length > 0 ? data : defaultCategories;
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      return defaultCategories;
+    }
+  },
+
+  create: async (data: Partial<Category>): Promise<Category> => {
+    console.log('API Call: POST /categories', data);
+    try {
+      return await apiRequest<Category>('/categories', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      console.log('Using mock create category - backend not available');
+      const mockCategory: Category = {
+        id: 'mock_cat_' + Date.now(),
+        name: data.name || 'New Category',
+      };
+      return mockCategory;
+    }
+  },
+
+  update: async (id: string, data: Partial<Category>): Promise<Category> => {
+    console.log('API Call: PUT /categories/' + id, data);
+    try {
+      return await apiRequest<Category>(`/categories/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      console.log('Using mock update category - backend not available');
+      return {
+        id,
+        name: data.name || '',
+      };
+    }
+  },
+
+  delete: async (id: string): Promise<void> => {
+    console.log('API Call: DELETE /categories/' + id);
+    try {
+      return await apiRequest<void>(`/categories/${id}`, { method: 'DELETE' });
+    } catch (error) {
+      console.log('Mock delete category - backend not available');
+      return;
+    }
+  },
+};
+
+// Booking/Appointments API
+export interface BookingRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  appointmentType: string;
+  preferredDate?: string;
+  message?: string;
+}
+
+export interface BookingResponse {
+  id: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  createdAt: string;
+}
+
+export const bookingsApi = {
+  create: async (data: BookingRequest): Promise<BookingResponse> => {
+    console.log('API Call: POST /bookings', data);
+    try {
+      return await apiRequest<BookingResponse>('/bookings', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      console.log('Using mock create booking - backend not available');
+      const mockBooking: BookingResponse = {
+        id: 'mock_booking_' + Date.now(),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      return mockBooking;
+    }
+  },
+
+  getAll: async (): Promise<BookingResponse[]> => {
+    console.log('API Call: GET /bookings');
+    try {
+      return await apiRequest<BookingResponse[]>('/bookings');
+    } catch (error) {
+      console.error('Failed to fetch bookings:', error);
+      return [];
+    }
+  },
+};
 
 export const collectionsApi = {
   // Public endpoint - returns visible collections with visible pieces
