@@ -134,6 +134,7 @@ export interface PublicPiece {
   description: string;
   image: string;
   price?: string;
+  showPrice?: boolean;
   available: boolean;
   category?: string;
   categoryId?: string;
