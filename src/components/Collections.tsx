@@ -153,9 +153,11 @@ export function Collections() {
                     <h3 className="font-display text-2xl font-bold mb-2">
                       {piece.name}
                     </h3>
-                    <p className="font-mono text-sm text-primary">
-                      {piece.price}
-                    </p>
+                    {piece.showPrice === true && piece.price && (
+                      <p className="font-mono text-sm text-primary">
+                        GH₵{piece.price}
+                      </p>
+                    )}
                   </div>
 
                   {/* Corner accent */}
@@ -173,9 +175,11 @@ export function Collections() {
                   <h3 className="font-display text-lg tracking-tight">
                     {piece.name}
                   </h3>
-                  <p className="font-mono text-sm text-primary">
-                    {piece.price}
-                  </p>
+                  {piece.showPrice === true && piece.price && (
+                    <p className="font-mono text-sm text-primary">
+                      GH₵{piece.price}
+                    </p>
+                  )}
                 </div>
               </motion.article>
             ))}
