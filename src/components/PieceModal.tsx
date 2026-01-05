@@ -63,8 +63,8 @@ export function PieceModal({ piece, onClose }: PieceModalProps) {
 
               <div className="pt-6 border-t border-border">
                 <div className="flex items-baseline justify-between mb-6">
-                  {piece.showPrice !== false && piece.price && (
-                    <span className="font-serif text-2xl">{piece.price}</span>
+                  {piece.showPrice === true && piece.price && (
+                    <span className="font-serif text-2xl">GH₵{piece.price}</span>
                   )}
                   <span
                     className={`text-sm tracking-[0.15em] uppercase ${
