@@ -231,7 +231,7 @@ export const bookingsApi = {
         body: JSON.stringify(data),
       });
     } catch (error) {
-      console.log('Using mock create booking - backend not available');
+      console.log('Using mock create booking - backend not available now');
       const mockBooking: BookingResponse = {
         id: 'mock_booking_' + Date.now(),
         status: 'pending',
